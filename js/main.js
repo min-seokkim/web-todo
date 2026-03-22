@@ -1,4 +1,4 @@
-import { loadQuests } from "./storage.js";
+import { fetchTodos } from "./api.js";
 import { setQuests } from "./questState.js";
 import { setRenderElements, renderApp } from "./questRender.js";
 import { setEventElements, bindQuestEvents } from "./questEvents.js";
@@ -28,15 +28,21 @@ function validateElements(elements) {
   }
 }
 
-function init() {
+async function init() {
   const elements = getDomElements();
   validateElements(elements);
 
-  const savedQuests = loadQuests();
-  setQuests(savedQuests);
-
   setRenderElements(elements);
   setEventElements(elements);
+
+  try {
+    const todos = await fetchTodos();
+    setQuests(todos);
+  } catch (error) {
+    console.error(error);
+    setQuests([]);
+    alert("할 일 목록을 불러오지 못했습니다.");
+  }
 
   renderApp();
   bindQuestEvents();

@@ -1,6 +1,12 @@
-import { acceptQuest, abandonQuest, getQuests, toggleQuest } from "./questState.js";
+import {
+  addQuest,
+  findQuestById,
+  normalizeQuestContent,
+  removeQuestById,
+  replaceQuest,
+} from "./questState.js";
 import { renderApp } from "./questRender.js";
-import { saveQuests } from "./storage.js";
+import { createTodo, deleteTodo, updateTodo } from "./api.js";
 
 let elements = null;
 
@@ -17,25 +23,30 @@ export function bindQuestEvents() {
   elements.questList.addEventListener("click", handleQuestClick);
 }
 
-function handleQuestSubmit(event) {
+async function handleQuestSubmit(event) {
   event.preventDefault();
 
-  const inputValue = elements.questInput.value;
-  const newQuest = acceptQuest(inputValue);
+  const inputValue = normalizeQuestContent(elements.questInput.value);
 
-  if (!newQuest) {
+  if (!inputValue) {
     elements.questInput.focus();
     return;
   }
 
-  saveQuests(getQuests());
-  renderApp();
+  try {
+    const createdQuest = await createTodo(inputValue);
+    addQuest(createdQuest);
+    renderApp();
 
-  elements.questInput.value = "";
-  elements.questInput.focus();
+    elements.questInput.value = "";
+    elements.questInput.focus();
+  } catch (error) {
+    console.error(error);
+    alert("퀘스트를 추가하지 못했습니다.");
+  }
 }
 
-function handleQuestClick(event) {
+async function handleQuestClick(event) {
   const button = event.target.closest("button");
 
   if (!button) {
@@ -55,14 +66,30 @@ function handleQuestClick(event) {
     return;
   }
 
-  if (action === "complete") {
-    toggleQuest(id);
-  } else if (action === "abandon") {
-    abandonQuest(id);
-  } else {
-    return;
-  }
+  try {
+    if (action === "complete") {
+      const targetQuest = findQuestById(id);
 
-  saveQuests(getQuests());
-  renderApp();
+      if (!targetQuest) {
+        return;
+      }
+
+      const updatedQuest = await updateTodo({
+        ...targetQuest,
+        completed: !targetQuest.completed,
+      });
+
+      replaceQuest(updatedQuest);
+    } else if (action === "abandon") {
+      await deleteTodo(id);
+      removeQuestById(id);
+    } else {
+      return;
+    }
+
+    renderApp();
+  } catch (error) {
+    console.error(error);
+    alert("퀘스트 처리 중 오류가 발생했습니다.");
+  }
 }
