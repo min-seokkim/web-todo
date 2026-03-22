@@ -1,4 +1,4 @@
-const BASE_URL = "여기에 mockapi 엔드포인트";
+const BASE_URL = "https://69bfc4c872ca04f3bcb92e5f.mockapi.io/";
 
 export async function fetchTodos() {
   const response = await fetch(BASE_URL);

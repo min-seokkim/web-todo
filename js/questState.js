@@ -12,58 +12,50 @@ export function setQuests(nextQuests) {
 
   quests = nextQuests.map((quest) => ({
     id: String(quest.id),
-    text: String(quest.text ?? "").trim(),
+    content: String(quest.content ?? "").trim(),
     completed: Boolean(quest.completed),
   }));
 }
 
-export function acceptQuest(text) {
-  const normalizedText = normalizeQuestText(text);
+export function normalizeQuestContent(content) {
+  return String(content ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
 
-  if (!normalizedText) {
-    return false;
-  }
-
-  const newQuest = {
-    id: createQuestId(),
-    text: normalizedText,
-    completed: false,
+export function addQuest(quest) {
+  const normalizedQuest = {
+    id: String(quest.id),
+    content: normalizeQuestContent(quest.content),
+    completed: Boolean(quest.completed),
   };
 
-  quests = [newQuest, ...quests];
-  return newQuest;
+  quests = [normalizedQuest, ...quests];
+  return normalizedQuest;
 }
 
-export function toggleQuest(id) {
-  const targetId = String(id);
-  let updatedQuest = null;
+export function replaceQuest(updatedQuest) {
+  const normalizedQuest = {
+    id: String(updatedQuest.id),
+    content: normalizeQuestContent(updatedQuest.content),
+    completed: Boolean(updatedQuest.completed),
+  };
 
-  quests = quests.map((quest) => {
-    if (quest.id !== targetId) {
-      return quest;
-    }
+  quests = quests.map((quest) =>
+    quest.id === normalizedQuest.id ? normalizedQuest : quest
+  );
 
-    updatedQuest = {
-      ...quest,
-      completed: !quest.completed,
-    };
-
-    return updatedQuest;
-  });
-
-  return updatedQuest;
+  return normalizedQuest;
 }
 
-export function abandonQuest(id) {
+export function removeQuestById(id) {
   const targetId = String(id);
-  const targetQuest = quests.find((quest) => quest.id === targetId);
-
-  if (!targetQuest) {
-    return false;
-  }
-
   quests = quests.filter((quest) => quest.id !== targetId);
-  return true;
+}
+
+export function findQuestById(id) {
+  const targetId = String(id);
+  return quests.find((quest) => quest.id === targetId) ?? null;
 }
 
 export function getSortedQuests() {
@@ -89,14 +81,4 @@ export function getQuestStats() {
     completedCount,
     completionRate,
   };
-}
-
-function normalizeQuestText(text) {
-  return String(text ?? "")
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-function createQuestId() {
-  return String(Date.now() + Math.floor(Math.random() * 1000));
 }
