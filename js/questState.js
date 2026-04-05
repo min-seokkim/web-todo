@@ -14,6 +14,7 @@ export function setQuests(nextQuests) {
     id: String(quest.id),
     content: String(quest.content ?? "").trim(),
     completed: Boolean(quest.completed),
+    createdAt: quest.createdAt ?? "",
   }));
 }
 
@@ -28,6 +29,7 @@ export function addQuest(quest) {
     id: String(quest.id),
     content: normalizeQuestContent(quest.content),
     completed: Boolean(quest.completed),
+    createdAt: quest.createdAt ?? "",
   };
 
   quests = [normalizedQuest, ...quests];
@@ -39,6 +41,7 @@ export function replaceQuest(updatedQuest) {
     id: String(updatedQuest.id),
     content: normalizeQuestContent(updatedQuest.content),
     completed: Boolean(updatedQuest.completed),
+    createdAt: updatedQuest.createdAt ?? "",
   };
 
   quests = quests.map((quest) =>
@@ -64,7 +67,7 @@ export function getSortedQuests() {
       return Number(a.completed) - Number(b.completed);
     }
 
-    return Number(b.id) - Number(a.id);
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }
 
